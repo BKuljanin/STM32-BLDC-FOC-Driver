@@ -99,7 +99,7 @@ int main(void)
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
 
-  TIM1->CCR4 = 4500;
+  TIM1->CCR4 = 4499;
 
   HAL_GPIO_WritePin(GPIOC, GPIO_PIN_10|GPIO_PIN_11|GPIO_PIN_12, GPIO_PIN_SET);
 
@@ -107,6 +107,10 @@ int main(void)
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_4);
+
+  TIM1->CCR1 = 2250;
+  TIM1->CCR2 = 2250;
+  TIM1->CCR3 = 2250;
 
   HAL_ADCEx_InjectedStart_IT(&hadc1);
 
