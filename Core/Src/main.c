@@ -47,7 +47,8 @@ I2C_HandleTypeDef hi2c1;
 TIM_HandleTypeDef htim1;
 
 /* USER CODE BEGIN PV */
-
+volatile uint16_t adc_ia_raw;
+volatile uint16_t adc_ib_raw;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -431,6 +432,8 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef *hadc)
 {
   if (hadc->Instance == ADC1)
   {
+    adc_ia_raw = ADC1->JDR1;
+    adc_ib_raw = ADC1->JDR2;
     HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_15);
   }
 }
