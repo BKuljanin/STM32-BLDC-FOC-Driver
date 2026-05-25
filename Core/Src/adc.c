@@ -108,7 +108,7 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef *hadc)
      * The code has ~25 us to run, from PWM low (ARR) to next PWM cycle (count = 0) */
     else
     {
-    	// Calculate i_u, i_v, i_w from raw values and calibration offsets
+    	// Calculate i_u, i_v, i_w from raw values of i_u and i_v and calibration offsets
     	calculate_currents();
     }
 
