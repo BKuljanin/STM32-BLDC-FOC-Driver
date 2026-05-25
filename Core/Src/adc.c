@@ -1,7 +1,7 @@
 #include "adc.h"
 
-volatile uint16_t adc_ia_raw;
-volatile uint16_t adc_ib_raw;
+volatile uint16_t adc_iu_raw;
+volatile uint16_t adc_iv_raw;
 
 volatile PhaseCurrents_t phase_currents;
 
@@ -65,8 +65,8 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef *hadc)
 {
   if (hadc->Instance == ADC1)
   {
-    adc_ia_raw = ADC1->JDR1;
-    adc_ib_raw = ADC1->JDR2;
+    adc_iu_raw = ADC1->JDR1;
+    adc_iv_raw = ADC1->JDR2;
     HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_15);
   }
 }

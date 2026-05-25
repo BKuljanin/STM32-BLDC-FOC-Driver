@@ -22,18 +22,14 @@ int main(void)
   as5600_init();
   tim3_1khz_it_init();
 
-  TIM1->CCR4 = 4499;
+  // Enabling 3 phases EN pin
+  bldc_enable_all();	// IHM07 reference manual p14
 
-  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_10|GPIO_PIN_11|GPIO_PIN_12, GPIO_PIN_SET);
-
+  // Starting timers
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_4);
-
-  TIM1->CCR1 = 2250;
-  TIM1->CCR2 = 2250;
-  TIM1->CCR3 = 2250;
 
   HAL_ADCEx_InjectedStart_IT(&hadc1);
 

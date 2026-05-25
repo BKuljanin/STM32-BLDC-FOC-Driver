@@ -2,6 +2,8 @@
 
 TIM_HandleTypeDef htim1;
 
+PhasesDuty_t phases_duty_cycles;
+
 void MX_TIM1_Init(void)
 {
   TIM_ClockConfigTypeDef sClockSourceConfig = {0};
@@ -71,5 +73,42 @@ void MX_TIM1_Init(void)
   }
 
   HAL_TIM_MspPostInit(&htim1);
+
+  // CCR of channel 4 set to ARR to get channel 4 event on every ARR counted
+  TIM1->CCR4 = TIM1_CH4_ARR;
+
+  // Initializing channels 1-3
+  TIM1->CCR1 = 0;
+  TIM1->CCR2 = 0;
+  TIM1->CCR3 = 0;
+}
+
+void tim1_pwm_set_duty_percent(PhasesDuty_t phases_duty_cycle)
+{
+	// Input is duty cycle in %
+
+    if (phases_duty_cycle.u_duty > MAX_DUTY_CYCLE) // Limit duty cycle to maximum allowed
+    {
+    	phases_duty_cycle.u_duty = MAX_DUTY_CYCLE;
+    }
+
+    if (phases_duty_cycle.v_duty > MAX_DUTY_CYCLE) // Limit duty cycle to maximum allowed
+    {
+    	phases_duty_cycle.v_duty = MAX_DUTY_CYCLE;
+    }
+
+    if (phases_duty_cycle.w_duty > MAX_DUTY_CYCLE) // Limit duty cycle to maximum allowed
+    {
+    	phases_duty_cycle.w_duty = MAX_DUTY_CYCLE;
+    }
+
+    // Setting up count value as a percentage of ARR
+    uint32_t count_value_u = (uint32_t)(phases_duty_cycle.u_duty * TIM1->ARR) / 100; // Mode 1. First multiplication then division because of integer division
+    uint32_t count_value_v = (uint32_t)(phases_duty_cycle.v_duty * TIM1->ARR) / 100;
+    uint32_t count_value_w = (uint32_t)(phases_duty_cycle.w_duty * TIM1->ARR) / 100;
+
+    TIM1->CCR1 = count_value_u;
+    TIM1->CCR2 = count_value_v;
+    TIM1->CCR3 = count_value_w;
 
 }
