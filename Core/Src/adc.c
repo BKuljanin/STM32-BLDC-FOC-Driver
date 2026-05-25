@@ -9,6 +9,8 @@ volatile PhaseCurrentsOffsets_t phase_currents_offsets;
 volatile uint8_t current_init_done;
 volatile uint16_t current_calibration_count;
 
+volatile uint8_t bldc_init_done;
+
 ADC_HandleTypeDef hadc1;
 
 void MX_ADC1_Init(void)
@@ -103,13 +105,19 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef *hadc)
     	}
     }
 
+    // Initialize BLDC into a know position and set encoder to 0
+    else if (bldc_init_done == 0)
+    {
+    	bldc_init();
+    	bldc_init_done = 1;
+    }
+
     /* Normal operation after system has been initialized
      * In this interrupt main FOC logic is implemented
      * The code has ~25 us to run, from PWM low (ARR) to next PWM cycle (count = 0) */
     else
     {
-    	// Calculate i_u, i_v, i_w from raw values of i_u and i_v and calibration offsets
-    	calculate_currents();
+    	foc_update();
     }
 
   }

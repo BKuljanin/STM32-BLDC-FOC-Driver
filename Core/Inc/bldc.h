@@ -30,5 +30,6 @@ extern BLDC_Direction_t bldc_direction;
 
 void bldc_enable_all(void);
 void bldc_disable_all(void);
+void bldc_init(void);
 
 #endif /* INC_BLDC_H_ */

@@ -53,3 +53,7 @@ void bldc_disable_all(void)
     phase_disable(PHASE_W);
 }
 
+void bldc_init(void)
+{
+
+}

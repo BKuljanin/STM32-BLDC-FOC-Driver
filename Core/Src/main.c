@@ -24,6 +24,7 @@ int main(void)
   as5600_init();
   tim3_1khz_it_init();
 
+
   // Enabling 3 phases EN pin
   bldc_enable_all();	// IHM07 reference manual p14
 
