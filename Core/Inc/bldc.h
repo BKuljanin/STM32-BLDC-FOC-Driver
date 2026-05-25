@@ -14,12 +14,6 @@
 #define OPEN_LOOP_DUTY		10		// Duty cycle of open loop phase
 
 
-extern volatile uint8_t step;
-extern float electrical_angle;
-extern uint32_t commutation_done;
-extern uint8_t sector;
-extern uint8_t new_step;
-
 typedef enum
 {
     PHASE_U = 0,
@@ -28,23 +22,13 @@ typedef enum
 } BLDC_Phase_t;
 
 typedef enum {
-      ENCODER_MODE,
-      BEMF_MODE
-} CommutationMode_t;
-
-typedef enum {
     BLDC_FORWARD = 0,
     BLDC_REVERSE = 1
 } BLDC_Direction_t;
 
 extern BLDC_Direction_t bldc_direction;
 
-void bldc_update_step(void);
-void bldc_test_run(uint32_t delay_ms, uint32_t duty_cycle);
-void bldc_run(uint32_t duty, CommutationMode_t mode);
-void bldc_init(CommutationMode_t mode);
-void bldc_open_loop_run(uint32_t duty_cycle);
-void bldc_noise_floor_test(BLDC_Phase_t phase);
-void test_adc_ch_switch(void);
+void bldc_enable_all(void);
+void bldc_disable_all(void);
 
 #endif /* INC_BLDC_H_ */

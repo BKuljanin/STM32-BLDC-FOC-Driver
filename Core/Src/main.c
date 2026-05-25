@@ -19,6 +19,8 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "as5600.h"
+#include "i2c.h"
+#include "timer.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -97,6 +99,8 @@ int main(void)
   MX_ADC1_Init();
   MX_TIM1_Init();
   MX_I2C1_Init();
+  as5600_init();
+  tim3_1khz_it_init();
   /* USER CODE BEGIN 2 */
 
   TIM1->CCR4 = 4499;

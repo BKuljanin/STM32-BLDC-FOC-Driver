@@ -13,9 +13,9 @@ void tim3_1khz_it_init(void)
 {
     RCC->APB1ENR |= TIM3EN;
 
-    // APB1 timer clock = 50 MHz (APB1 = 25 MHz, x2 because APB prescaler != 1)
-    // 50 MHz / 50 / 1000 = 1 kHz
-    TIM3->PSC = 50 - 1;
+    // APB1 timer clock = 90 MHz (APB1 = 45 MHz, x2 because APB prescaler != 1)
+    // 90 MHz / 90 / 1000 = 1 kHz
+    TIM3->PSC = 90 - 1;
     TIM3->ARR = 1000 - 1;
 
     TIM3->DIER |= DIER_UIE;

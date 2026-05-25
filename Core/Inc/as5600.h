@@ -15,6 +15,7 @@ typedef struct {
     float angle;
     float angle_previous;
     float angular_speed;
+    float electrical_angle_rad;  // θ_e = angle * pole_pairs, in radians [0, 2π)
 } as5600;
 
 extern as5600 encoder;
