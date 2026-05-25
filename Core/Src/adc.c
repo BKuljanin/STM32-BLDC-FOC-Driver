@@ -67,7 +67,7 @@ void MX_ADC1_Init(void)
 void calculate_currents(void)
 {
 	float v_u = ADC_RATIO * (adc_iu_raw - phase_currents_offsets.i_u_offset);
-	float v_v = DC_RATIO * (adc_iv_raw - phase_currents_offsets.i_v_offset);
+	float v_v = ADC_RATIO * (adc_iv_raw - phase_currents_offsets.i_v_offset);
 
 	phase_currents.i_u = v_u / VOLTAGE_TO_CURRENT_RATIO;
 	phase_currents.i_v = v_v / VOLTAGE_TO_CURRENT_RATIO;
@@ -89,8 +89,8 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef *hadc)
     /* Setting offset for phases U and V */
     if (current_init_done == 0)
     {
-    	phase_currents_offsets.i_u_offset += phase_currents_offsets.i_u_offset;
-		phase_currents_offsets.i_v_offset += phase_currents_offsets.i_v_offset;
+    	phase_currents_offsets.i_u_offset += adc_iu_raw;
+		phase_currents_offsets.i_v_offset += adc_iv_raw;
 
     	current_calibration_count++;
 
