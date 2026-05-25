@@ -77,6 +77,7 @@ void HAL_I2C_MemRxCpltCallback(I2C_HandleTypeDef *hi2c)
     if (theta_e < 0.0f) theta_e += 2.0f * PI;
     encoder.electrical_angle_rad = theta_e;
 
+    as5600_calculate_speed();
     measurement_ready = 1;
 }
 
