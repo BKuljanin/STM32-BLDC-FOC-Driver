@@ -55,5 +55,12 @@ void bldc_disable_all(void)
 
 void bldc_init(void)
 {
+	// Inject known Vd
 
+
+	// Wait
+	HAL_Delay(1000);
+
+	// Set reference when done
+	as5600_set_reference();
 }

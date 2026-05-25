@@ -3,8 +3,8 @@
 
 #include "main.h"
 #include "timer.h"
+#include "as5600.h"
 
-#define MAX_DUTY_CYCLE      50
 #define BLDC_POLE_PAIRS     7 	 	// Number of poles of BLDC. In this project A2208/14T 1400KV was used
 #define BEMF_BLANK_US       500   	// 500µs blanking after commutation
 #define ALIGN_DUTY_PERCENT  15   	// Duty used to park rotor during alignment

@@ -19,6 +19,7 @@ extern volatile PhaseCurrents_t phase_currents;
 extern volatile PhaseCurrentsOffsets_t phase_currents_offsets;
 
 void MX_ADC1_Init(void);
+void calculate_currents(void);
 
 #define CURRENT_OFFSET_SAMPLES 100
 #define SHUNT_RESISTOR_VALUE 0.33f // [Ohm]
