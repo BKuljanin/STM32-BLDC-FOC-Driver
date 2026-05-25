@@ -5,6 +5,8 @@
 #include "adc.h"
 #include "pwm.h"
 #include "gpio.h"
+#include "bldc.h"
+#include "foc.h"
 
 void SystemClock_Config(void);
 
