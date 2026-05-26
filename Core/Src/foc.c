@@ -1,4 +1,5 @@
 #include "foc.h"
+#include "controller.h"
 
 FOC_t foc;
 
@@ -36,5 +37,8 @@ void foc_update(void)
 
 	// Park transform
 	park_transform();
+
+	// Call position PI, speed PI, current PI (iq and id)
+	controller_task();
 
 }
