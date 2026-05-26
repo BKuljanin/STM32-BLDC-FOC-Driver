@@ -5,6 +5,7 @@
 #include "as5600.h"
 #include "pwm.h"
 #include "math.h"
+#include "trigonometry.h"
 
 typedef struct {
       float i_alpha, i_beta;
