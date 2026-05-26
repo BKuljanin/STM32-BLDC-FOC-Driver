@@ -58,6 +58,7 @@ void controller_task(void)
 		foc.iq_ref = pi_controller(&speed_pi, foc.speed_ref, encoder.angular_speed, SPEED_LOOP_DT);
 		speed_loop_counter = 0;
 
+		// Incrementing counter for scheduling position control loop
 		position_loop_counter++;
 		if (position_loop_counter >= POSITION_LOOP_COUNT)
 			{
