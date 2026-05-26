@@ -39,7 +39,7 @@ typedef struct {
 #define POSITION_PI_OUT_LOWER      -100.0f
 
 // Iq is minimized to keep stator 90 deg ahead of rotor
-#define IQ_SETPOINT 0.0f
+#define ID_SETPOINT 0.0f
 
 /* PI task frequencies
  * ADC sample happens in the middle of center aligned PWM 20 kHz frequency.
@@ -47,6 +47,10 @@ typedef struct {
  * Position loop is called at 20 Hz (10 speed PIs are called between 2 position loop calls) */
 #define SPEED_LOOP_COUNT 100
 #define POSITION_LOOP_COUNT 10
+
+#define CURRENT_LOOP_DT (0.000050f) 	// 50 microseconds represented in seconds (1 / 20000 Hz)
+#define SPEED_LOOP_DT (CURRENT_LOOP_DT * SPEED_LOOP_COUNT)		// Bigger delta_t than current loop
+#define POSITION_LOOP_DT (SPEED_LOOP_DT * POSITION_LOOP_COUNT)	// Bigger delta_t than speed loop
 
 
 extern PI_Controller_t id_pi;

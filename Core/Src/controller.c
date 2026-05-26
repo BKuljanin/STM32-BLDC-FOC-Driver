@@ -42,5 +42,28 @@ float pi_controller(PI_Controller_t *ctrl, float setpoint, float measurement, fl
 
 void controller_task(void)
 {
+	static uint16_t speed_loop_counter;
+	static uint16_t position_loop_counter;
+	// Provides vq to follow the desired iq
+	foc.vq = pi_controller(&iq_pi, foc.iq_ref, foc.iq, CURRENT_LOOP_DT);
 
+	// Provides vd to follow the desired id
+	foc.vd = pi_controller(&id_pi, ID_SETPOINT, foc.id, CURRENT_LOOP_DT);
+
+	// Incrementing counter for scheduling speed control loop
+	speed_loop_counter++;
+
+	if (speed_loop_counter >= SPEED_LOOP_COUNT)
+	{
+		foc.iq_ref = pi_controller(&speed_pi, foc.speed_ref, encoder.angular_speed, SPEED_LOOP_DT);
+		speed_loop_counter = 0;
+
+		position_loop_counter++;
+		if (position_loop_counter >= POSITION_LOOP_COUNT)
+			{
+				foc.speed_ref = pi_controller(&position_pi, foc.position_ref, encoder.angle, POSITION_LOOP_DT);
+				position_loop_counter = 0;
+			}
+	}
 }
+
