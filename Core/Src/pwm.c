@@ -87,20 +87,20 @@ void tim1_pwm_set_duty_percent(PhasesDuty_t phases_duty_cycle)
 {
 	// Input is duty cycle in %
 
-    if (phases_duty_cycle.u_duty > MAX_DUTY_CYCLE) // Limit duty cycle to maximum allowed
-    {
+    if (phases_duty_cycle.u_duty > MAX_DUTY_CYCLE)
     	phases_duty_cycle.u_duty = MAX_DUTY_CYCLE;
-    }
+    if (phases_duty_cycle.u_duty < 0.0f)
+    	phases_duty_cycle.u_duty = 0.0f;
 
-    if (phases_duty_cycle.v_duty > MAX_DUTY_CYCLE) // Limit duty cycle to maximum allowed
-    {
+    if (phases_duty_cycle.v_duty > MAX_DUTY_CYCLE)
     	phases_duty_cycle.v_duty = MAX_DUTY_CYCLE;
-    }
+    if (phases_duty_cycle.v_duty < 0.0f)
+    	phases_duty_cycle.v_duty = 0.0f;
 
-    if (phases_duty_cycle.w_duty > MAX_DUTY_CYCLE) // Limit duty cycle to maximum allowed
-    {
+    if (phases_duty_cycle.w_duty > MAX_DUTY_CYCLE)
     	phases_duty_cycle.w_duty = MAX_DUTY_CYCLE;
-    }
+    if (phases_duty_cycle.w_duty < 0.0f)
+    	phases_duty_cycle.w_duty = 0.0f;
 
     // Setting up count value as a percentage of ARR
     uint32_t count_value_u = (uint32_t)(phases_duty_cycle.u_duty * TIM1->ARR) / 100; // Mode 1. First multiplication then division because of integer division
