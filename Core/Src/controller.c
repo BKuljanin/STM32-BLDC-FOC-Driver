@@ -1,4 +1,5 @@
 #include "controller.h"
+#include "foc.h"
 
 PI_Controller_t id_pi       = { ID_PI_KP,       ID_PI_KI,       ID_PI_INTEGRAL_SAT,       ID_PI_OUT_UPPER,       ID_PI_OUT_LOWER,       0.0f };
 PI_Controller_t iq_pi       = { IQ_PI_KP,       IQ_PI_KI,       IQ_PI_INTEGRAL_SAT,       IQ_PI_OUT_UPPER,       IQ_PI_OUT_LOWER,       0.0f };
@@ -36,5 +37,10 @@ float pi_controller(PI_Controller_t *ctrl, float setpoint, float measurement, fl
 	}
 
 	return out;
+
+}
+
+void controller_task(void)
+{
 
 }
