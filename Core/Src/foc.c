@@ -109,7 +109,7 @@ void svpwm_update(void)
 	            break;
 	    }
 
-	// Clamp overmodulation
+	// Clamp t_1 and t_2
 	if (t_1 + t_2 > 1.0f) {
 		float scale = 1.0f / (t_1 + t_2);
 		t_1 *= scale;
@@ -117,10 +117,12 @@ void svpwm_update(void)
 	}
 
 	t_0 = 1.0f - t_1 - t_2;
-	float t_z = t_0 * 0.5f;
+	float t_z = t_0 * 0.5f;	// Symmetric PWM splits zero time
 
 	float d_u, d_v, d_w;
 
+	// Each phase duty is built from t_z (null time) + its active vector time. The phase that
+	// leads the sector gets 1-t_z (on for almost the whole period), the rest get t_z or t_z+t_n.
 	switch (sector) {
 		case 1: d_u = 1.0f - t_z;  d_v = t_z + t_2;   d_w = t_z;         break;
 		case 2: d_u = t_z + t_1;   d_v = 1.0f - t_z;  d_w = t_z;         break;

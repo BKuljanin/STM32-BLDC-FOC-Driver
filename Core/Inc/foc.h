@@ -22,7 +22,6 @@ extern FOC_t foc;
 
 void foc_update(void);
 
-#define PI 3.141592f
 #define SQRT_3 1.73205f
 #define SQRT_3_HALF (SQRT_3/2)
 #define VBUS_NOMINAL 12.0f
