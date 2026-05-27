@@ -1,5 +1,6 @@
 #include "controller.h"
 #include "foc.h"
+#include "setpoint_generator.h"
 
 PI_Controller_t id_pi       = { ID_PI_KP,       ID_PI_KI,       ID_PI_INTEGRAL_SAT,       ID_PI_OUT_UPPER,       ID_PI_OUT_LOWER,       0.0f };
 PI_Controller_t iq_pi       = { IQ_PI_KP,       IQ_PI_KI,       IQ_PI_INTEGRAL_SAT,       IQ_PI_OUT_UPPER,       IQ_PI_OUT_LOWER,       0.0f };
@@ -62,6 +63,7 @@ void controller_task(void)
 		position_loop_counter++;
 		if (position_loop_counter >= POSITION_LOOP_COUNT)
 			{
+				foc.position_ref = ramp_position_setpoint(POSITION_TARGET_RAD, POSITION_RAMP_RATE, POSITION_LOOP_DT);
 				foc.speed_ref = pi_controller(&position_pi, foc.position_ref, encoder.angle, POSITION_LOOP_DT);
 				position_loop_counter = 0;
 			}

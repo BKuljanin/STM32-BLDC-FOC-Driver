@@ -57,33 +57,48 @@ void svpwm_update(void)
 	uint8_t sector = 0;
 	float t_1 = 0.0f, t_2 = 0.0f, t_0 = 0.0f;
 
+	/*
+	 * Active vectors:
+		V0 = 000
+		V1 = 100
+		V2 = 110
+		V3 = 010
+		V4 = 011
+		V5 = 001
+		V6 = 101
+		V7 = 111
+
+		t1 time spent in first active vector
+		t2 time spent in second active vector
+	 * */
+
 	switch(sector_code) {
-	        case 3: // Sector 1 (0 to 60 deg)
+	        case 3: // 011 (W low, V high, U high)
 	            sector = 1;
 	            t_1 = SQRT_3 * v_v / VBUS_NOMINAL;
 	            t_2 = SQRT_3 * v_u / VBUS_NOMINAL;
 	            break;
-	        case 1: // Sector 2 (60 to 120 deg)
+	        case 1: // 001
 	            sector = 2;
 	            t_1 = SQRT_3 * v_u / VBUS_NOMINAL;
 	            t_2 = -SQRT_3 * v_w / VBUS_NOMINAL;
 	            break;
-	        case 5: // Sector 3 (120 to 180 deg)
+	        case 5: // 101
 	            sector = 3;
 	            t_1 = -SQRT_3 * v_w / VBUS_NOMINAL;
 	            t_2 = SQRT_3 * v_v / VBUS_NOMINAL;
 	            break;
-	        case 4: // Sector 4 (180 to 240 deg)
+	        case 4: // 100
 	            sector = 4;
 	            t_1 = SQRT_3 * v_w / VBUS_NOMINAL;
 	            t_2 = -SQRT_3 * v_u / VBUS_NOMINAL;
 	            break;
-	        case 6: // Sector 5 (240 to 300 deg)
+	        case 6: // 110
 	            sector = 5;
 	            t_1 = -SQRT_3 * v_u / VBUS_NOMINAL;
 	            t_2 = -SQRT_3 * v_v / VBUS_NOMINAL;
 	            break;
-	        case 2: // Sector 6 (300 to 360 deg)
+	        case 2: // 010
 	            sector = 6;
 	            t_1 = -SQRT_3 * v_v / VBUS_NOMINAL;
 	            t_2 = -SQRT_3 * v_w / VBUS_NOMINAL;
