@@ -27,5 +27,8 @@ void foc_update(void);
 #define PI 3.141592f
 #define SQRT_3 1.73205f
 #define SQRT_3_HALF (SQRT_3/2)
+#define VBUS_NOMINAL 12.0f
+
+void svpwm_update(void);
 
 #endif /* INC_FOC_H_ */

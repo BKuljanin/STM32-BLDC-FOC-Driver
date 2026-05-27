@@ -4,6 +4,7 @@
 #include "main.h"
 #include "timer.h"
 #include "as5600.h"
+#include "foc.h"
 
 #define BLDC_POLE_PAIRS     7 	 	// Number of poles of BLDC. In this project A2208/14T 1400KV was used
 #define BEMF_BLANK_US       500   	// 500µs blanking after commutation
@@ -12,6 +13,9 @@
 
 #define OPEN_LOOP_COM_NR	300		// Number of commutations in open loop
 #define OPEN_LOOP_DUTY		10		// Duty cycle of open loop phase
+
+#define ALIGNMENT_VD        1.2f    // Vd injected during FOC alignment (volts, ~10% of 12V bus)
+#define ALIGNMENT_TICKS     20000U  // 20000 × 50us = 1s settle time
 
 
 typedef enum
@@ -30,6 +34,6 @@ extern BLDC_Direction_t bldc_direction;
 
 void bldc_enable_all(void);
 void bldc_disable_all(void);
-void bldc_init(void);
+uint8_t bldc_init(void);
 
 #endif /* INC_BLDC_H_ */

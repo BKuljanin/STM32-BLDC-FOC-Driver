@@ -1,4 +1,4 @@
-#include "foc.h"
+﻿#include "foc.h"
 #include "controller.h"
 
 FOC_t foc;
@@ -35,8 +35,8 @@ void inverse_park_transform(void)
 	compute_sin_cos(encoder.electrical_angle_rad, &sin_theta, &cos_theta);
 
 	// Apply inverse Park transform
-	foc.v_alpha = foc.v_d * cos_theta - foc.v_q * sin_theta;
-	foc.v_beta = foc.v_d * sin_theta + foc.v_q * cos_theta;
+	foc.v_alpha = foc.vd * cos_theta - foc.vq * sin_theta;
+	foc.v_beta = foc.vd * sin_theta + foc.vq * cos_theta;
 }
 
 void svpwm_update(void)
@@ -47,6 +47,80 @@ void svpwm_update(void)
 	float v_u = foc.v_alpha;
 	float v_v = -0.5f * foc.v_alpha + SQRT_3_HALF * foc.v_beta;
 	float v_w = -0.5f * foc.v_alpha - SQRT_3_HALF * foc.v_beta;
+
+	// Determine Sector using a 3 bit digital code based on positive projections
+	uint8_t sector_code = 0;
+	if (v_u > 0.0f) sector_code |= 1; // Bit 0
+	if (v_v > 0.0f) sector_code |= 2; // Bit 1
+	if (v_w > 0.0f) sector_code |= 4; // Bit 2
+
+	uint8_t sector = 0;
+	float t_1 = 0.0f, t_2 = 0.0f, t_0 = 0.0f;
+
+	switch(sector_code) {
+	        case 3: // Sector 1 (0 to 60 deg)
+	            sector = 1;
+	            t_1 = SQRT_3 * v_v / VBUS_NOMINAL;
+	            t_2 = SQRT_3 * v_u / VBUS_NOMINAL;
+	            break;
+	        case 1: // Sector 2 (60 to 120 deg)
+	            sector = 2;
+	            t_1 = SQRT_3 * v_u / VBUS_NOMINAL;
+	            t_2 = -SQRT_3 * v_w / VBUS_NOMINAL;
+	            break;
+	        case 5: // Sector 3 (120 to 180 deg)
+	            sector = 3;
+	            t_1 = -SQRT_3 * v_w / VBUS_NOMINAL;
+	            t_2 = SQRT_3 * v_v / VBUS_NOMINAL;
+	            break;
+	        case 4: // Sector 4 (180 to 240 deg)
+	            sector = 4;
+	            t_1 = SQRT_3 * v_w / VBUS_NOMINAL;
+	            t_2 = -SQRT_3 * v_u / VBUS_NOMINAL;
+	            break;
+	        case 6: // Sector 5 (240 to 300 deg)
+	            sector = 5;
+	            t_1 = -SQRT_3 * v_u / VBUS_NOMINAL;
+	            t_2 = -SQRT_3 * v_v / VBUS_NOMINAL;
+	            break;
+	        case 2: // Sector 6 (300 to 360 deg)
+	            sector = 6;
+	            t_1 = -SQRT_3 * v_v / VBUS_NOMINAL;
+	            t_2 = -SQRT_3 * v_w / VBUS_NOMINAL;
+	            break;
+	        default:
+	            t_1 = 0.0f;
+	            t_2 = 0.0f;
+	            break;
+	    }
+
+	// Clamp overmodulation
+	if (t_1 + t_2 > 1.0f) {
+		float scale = 1.0f / (t_1 + t_2);
+		t_1 *= scale;
+		t_2 *= scale;
+	}
+
+	t_0 = 1.0f - t_1 - t_2;
+	float t_z = t_0 * 0.5f;
+
+	float d_u, d_v, d_w;
+
+	switch (sector) {
+		case 1: d_u = 1.0f - t_z;  d_v = t_z + t_2;   d_w = t_z;         break;
+		case 2: d_u = t_z + t_1;   d_v = 1.0f - t_z;  d_w = t_z;         break;
+		case 3: d_u = t_z;         d_v = 1.0f - t_z;  d_w = t_z + t_2;   break;
+		case 4: d_u = t_z;         d_v = t_z + t_1;   d_w = 1.0f - t_z;  break;
+		case 5: d_u = t_z + t_2;   d_v = t_z;         d_w = 1.0f - t_z;  break;
+		case 6: d_u = 1.0f - t_z;  d_v = t_z;         d_w = t_z + t_1;   break;
+		default: d_u = 0.5f; d_v = 0.5f; d_w = 0.5f;  break;
+	}
+
+	foc.duty.u_duty = d_u * 100.0f;
+	foc.duty.v_duty = d_v * 100.0f;
+	foc.duty.w_duty = d_w * 100.0f;
+
+	tim1_pwm_set_duty_percent(foc.duty);
 }
 
 void foc_update(void)

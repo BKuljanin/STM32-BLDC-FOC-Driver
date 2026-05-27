@@ -53,14 +53,27 @@ void bldc_disable_all(void)
     phase_disable(PHASE_W);
 }
 
-void bldc_init(void)
+uint8_t bldc_init(void)
 {
-	// Inject known Vd
+	static uint16_t align_count = 0;
 
+	if (align_count == 0)
+		bldc_enable_all();
 
-	// Wait
-	HAL_Delay(1000);
+	// Pull rotor d-axis to align with alpha (phase U). Same as inv-Park at theta=0 with Vd=ALIGNMENT_VD, Vq=0.
+	// After settling we zero the encoder, so from here on encoder=0 means d=alpha.
+	foc.v_alpha = ALIGNMENT_VD;
+	foc.v_beta  = 0.0f;
+	svpwm_update();
 
-	// Set reference when done
-	as5600_set_reference();
+	align_count++;
+
+	if (align_count >= ALIGNMENT_TICKS)
+	{
+		as5600_set_reference();
+		align_count = 0;
+		return 1;
+	}
+
+	return 0;
 }

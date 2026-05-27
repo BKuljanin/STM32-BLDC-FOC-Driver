@@ -1,4 +1,5 @@
 #include "adc.h"
+#include "bldc.h"
 
 volatile uint16_t adc_iu_raw;
 volatile uint16_t adc_iv_raw;
@@ -108,8 +109,8 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef *hadc)
     // Initialize BLDC into a know position and set encoder to 0
     else if (bldc_init_done == 0)
     {
-    	bldc_init();
-    	bldc_init_done = 1;
+    	if (bldc_init())
+    		bldc_init_done = 1;
     }
 
     /* Normal operation after system has been initialized
