@@ -13,10 +13,8 @@ typedef struct {
       float id_ref, iq_ref;
       float vd, vq;
       float v_alpha, v_beta;
-      float theta_e;
       float speed_ref;
       float position_ref;
-      float id_integral, iq_integral;
       PhasesDuty_t duty;
   } FOC_t;
 
