@@ -72,6 +72,8 @@ void HAL_I2C_MemRxCpltCallback(I2C_HandleTypeDef *hi2c)
     if (bldc_direction == BLDC_REVERSE) { ref = 360.0f - ref; if (ref >= 360.0f) ref -= 360.0f; }
     encoder.angle = ref;
 
+    encoder.angle_rad = encoder.angle * PI / 180.0f;
+
     float theta_e = ref * (float)BLDC_POLE_PAIRS * (PI / 180.0f);
     theta_e -= (float)(int)(theta_e / (2.0f * PI)) * (2.0f * PI);
     if (theta_e < 0.0f) theta_e += 2.0f * PI;

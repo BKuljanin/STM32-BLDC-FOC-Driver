@@ -64,7 +64,7 @@ void controller_task(void)
 		if (position_loop_counter >= POSITION_LOOP_COUNT)
 			{
 				foc.position_ref = ramp_position_setpoint(POSITION_TARGET_RAD, POSITION_RAMP_RATE, POSITION_LOOP_DT);
-				foc.speed_ref = pi_controller(&position_pi, foc.position_ref, encoder.angle, POSITION_LOOP_DT);
+				foc.speed_ref = pi_controller(&position_pi, foc.position_ref, encoder.angle_rad, POSITION_LOOP_DT);
 				position_loop_counter = 0;
 			}
 	}
