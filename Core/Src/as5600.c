@@ -105,7 +105,7 @@ void as5600_calculate_speed(void)
     if (delta_angle >  180.0f) delta_angle -= 360.0f;
     if (delta_angle < -180.0f) delta_angle += 360.0f;
 
-    float angular_speed_raw = delta_angle / AS5600_SAMPLE_PERIOD_S;
+    float angular_speed_raw = (delta_angle * PI / 180.0f) / AS5600_SAMPLE_PERIOD_S;  // rad/s
 
     static float speed_filter_state;
     encoder.angular_speed = lp_filter(angular_speed_raw, SPEED_LP_CUTOFF,
