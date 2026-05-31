@@ -2,6 +2,12 @@
 #include "controller.h"
 
 FOC_t foc;
+FOC_Mode_t foc_mode = FOC_SENSORLESS;
+
+static float get_theta(void)
+{
+    return (foc_mode == FOC_SENSORLESS) ? foc.theta_obs : encoder.electrical_angle_rad;
+}
 
 void clarke_transform(void)
 {
@@ -20,7 +26,7 @@ void park_transform(void)
 	// Compute sin and cos theta
 	float sin_theta = 0.0f;
 	float cos_theta = 0.0f;
-	compute_sin_cos(encoder.electrical_angle_rad, &sin_theta, &cos_theta);
+	compute_sin_cos(get_theta(), &sin_theta, &cos_theta);
 
 	// Apply Park transform
 	foc.id = foc.i_alpha * cos_theta + foc.i_beta * sin_theta;
@@ -32,7 +38,7 @@ void inverse_park_transform(void)
 	// Compute sin and cos theta
 	float sin_theta = 0.0f;
 	float cos_theta = 0.0f;
-	compute_sin_cos(encoder.electrical_angle_rad, &sin_theta, &cos_theta);
+	compute_sin_cos(get_theta(), &sin_theta, &cos_theta);
 
 	// Apply inverse Park transform
 	foc.v_alpha = foc.vd * cos_theta - foc.vq * sin_theta;
@@ -140,6 +146,18 @@ void svpwm_update(void)
 	tim1_pwm_set_duty_percent(foc.duty);
 }
 
+void bemf_observer_update(void)
+{
+    // LPF-based flux observer. The OBSERVER_OMEGA_C term corrects integrator drift —
+    // pure integration would accumulate DC error from R mismatch and ADC offset.
+    foc.flux_alpha += (foc.v_alpha - MOTOR_R * foc.i_alpha - OBSERVER_OMEGA_C * foc.flux_alpha) * CURRENT_LOOP_DT;
+    foc.flux_beta  += (foc.v_beta  - MOTOR_R * foc.i_beta  - OBSERVER_OMEGA_C * foc.flux_beta)  * CURRENT_LOOP_DT;
+
+    float theta = atan2f(-foc.flux_alpha, foc.flux_beta);
+    if (theta < 0.0f) theta += 2.0f * PI;
+    foc.theta_obs = theta;
+}
+
 void foc_update(void)
 {
 	// Calculate i_u, i_v, i_w from raw values of i_u and i_v and calibration offsets
@@ -160,4 +178,8 @@ void foc_update(void)
 	// Space vector PWM, from alpha, beta framework to duty cycles for phases U, V, W
 	svpwm_update();
 
+	// Update flux observer — needs v_alpha/beta (after inv-park) and i_alpha/beta (after clarke)
+	// Result used by park/inv-park on the next cycle
+	if (foc_mode == FOC_SENSORLESS)
+		bemf_observer_update();
 }
