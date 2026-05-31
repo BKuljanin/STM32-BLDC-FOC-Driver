@@ -2,19 +2,17 @@
 ### Field Oriented Control + Position/Speed/Current Cascade + SVPWM (NUCLEO-F446RE + IHM07M1)
 
 **Note:**
-This project implements Field Oriented Control (FOC) for a brushless DC motor on the STM32F446RE. It uses the X-Nucleo IHM07M1 gate driver shield with a 2-shunt current sensing topology and an AS5600 magnetic encoder for rotor position. The full control chain — Clarke/Park transforms, a three-loop PI cascade, inverse Park, and SVPWM — runs inside the ADC injected conversion interrupt at 20 kHz.
+This project implements Field Oriented Control (FOC) for a brushless DC motor on the STM32F446RE. It uses the X-Nucleo IHM07M1 gate driver shield with a 2-shunt current sensing topology and an AS5600 magnetic encoder for rotor position. The full control chain: Clarke/Park transforms, three-loop PI cascade, inverse Park, and SVPWM run inside the ADC injected conversion interrupt at 20 kHz.
 
 ---
 
 ## This project demonstrates
 
 - **Field Oriented Control** — decoupled torque (Iq) and flux (Id) control in the rotating d/q reference frame
-- **Space Vector PWM** — projection-based sector detection, normalized T1/T2 dwell times, center-aligned symmetric output
-- **Three-loop PI cascade** — position (20 Hz) → speed (200 Hz) → current (20 kHz), all with anti-windup back-calculation
-- **2-shunt current sensing** — injected ADC triggered at the PWM peak (V0 null vector) for clean low-side sampling
-- **Motor alignment sequence** — Vd injection at θ=0 to pull rotor to a known position before zeroing the encoder
-- **AS5600 14-bit absolute magnetic encoder** via I2C1 at 1 kHz (TIM3 interrupt driven)
-- **Position ramp setpoint generator** for tracking demonstration
+- **Space Vector PWM** — sector detection, normalized T1/T2 times, center aligned symmetric output
+- **Three loop PI cascade** — position (20 Hz) → speed (200 Hz) → current (20 kHz)
+- **2 shunt resistors current sensing** — injected ADC triggered at the PWM peak for low side sampling
+- **AS5600 14 bit absolute magnetic encoder** on I2C1
 
 ---
 
@@ -31,7 +29,7 @@ This project implements Field Oriented Control (FOC) for a brushless DC motor on
 ### Motor: A2208/14T 1400 KV Brushless Outrunner
 - **Pole pairs:** 7
 
-### Encoder: AS5600 (14-bit absolute magnetic, I2C)
+### Encoder: AS5600 (absolute magnetic, I2C)
 - 12-bit output resolution: 4096 counts/revolution
 
 ### Power Supply
@@ -47,13 +45,13 @@ TIM1 CC4 falling edge (at PWM peak, 20 kHz)
        └─ HAL_ADCEx_InjectedConvCpltCallback
             │
             ├─ [State 1] current_init_done == 0
-            │     └─ Accumulate ADC offsets over 100 samples, then set current_init_done
+            │     └─ Accumulate ADC offsets over 100 samples for calibration
             │
             ├─ [State 2] bldc_init_done == 0
             │     └─ bldc_init() every tick
             │           ├─ Inject v_alpha = 1.2V, v_beta = 0 → svpwm_update()
             │           ├─ Hold for 20000 ticks (1 second)
-            │           └─ as5600_set_reference() → bldc_init_done = 1
+            │           └─ as5600_set_reference() to preset encoder
             │
             └─ [State 3] Normal operation
                   └─ foc_update()
@@ -75,7 +73,7 @@ TIM3 IRQ (1 kHz)
 
 The entire control chain executes in a single ADC ISR with a ~25 µs window between the PWM peak and the start of the next PWM cycle.
 
-### Clarke Transform (amplitude-invariant)
+### Clarke Transform
 
 Converts three-phase currents to the stationary α/β frame. The 1.5 scaling factor is removed to preserve current amplitude:
 
@@ -101,8 +99,6 @@ iq = −i_alpha*sin(θ_e) + i_beta*cos(θ_e)
 | Speed    | 200 Hz  | speed_ref [rad/s]  | iq_ref [A]  |
 | Position | 20 Hz   | position_ref [rad] | speed_ref   |
 
-All four PI controllers use anti-windup back-calculation — the integral state is clamped in output units, avoiding the usual Ki-dependent saturation mismatch.
-
 ### Inverse Park Transform
 
 Rotates vd/vq back to the stationary frame:
@@ -114,27 +110,27 @@ v_beta  = vd*sin(θ_e) + vq*cos(θ_e)
 
 ### SVPWM
 
-Projects v_alpha/v_beta onto the three phase axes to determine sector and compute dwell times T1, T2 for the two adjacent active vectors. Both are normalized by VBUS so T1+T2 ∈ [0,1]. Remaining time T0 is split symmetrically (Tz = T0/2) giving center-aligned symmetric output.
+Projects v_alpha/v_beta onto the three phase axes to determine sector and compute dwell times T1, T2 for the two adjacent active vectors. Both are normalized by VBUS so T1+T2 ∈ [0,1]. Remaining time T0 is split symmetrically (Tz = T0/2) giving center aligned symmetric output.
 
-The PWM is configured as center-aligned mode 1 with PWM mode 1 (active high). This places V0 at the counter peak (CNT=ARR) and V7 at the counter valley — a mirror of the textbook arrangement, but mathematically equivalent and better suited for bottom-shunt sensing since the ADC fires during V0 when both shunts carry current.
+The PWM is configured as center aligned mode 1 with PWM mode 1 (active high). This places V0 at the counter peak (CNT=ARR) and V7 at the counter ends, which is better suited for low side shunt sensing since the ADC fires during V0 when both shunts carry current.
 
 ---
 
 ## Motor Alignment Sequence
 
-On startup, before entering the normal FOC loop, the firmware pulls the rotor to a known electrical position:
+On startup, before entering the normal FOC loop, the rotor is pulled to a known electrical position:
 
 1. Enable all three phases
 2. Apply v_alpha = 1.2 V, v_beta = 0 directly (equivalent to inv-Park at θ=0 with Vd=1.2V, Vq=0 — creates a stator field along the U-phase axis)
-3. Hold for 1 second (20000 ADC ISR ticks at 20 kHz)
-4. Call `as5600_set_reference()` — encoder zero is now aligned with the rotor d-axis
+3. Hold for 1 second
+4. Call `as5600_set_reference()` presets encoder. Encoder zero is now aligned with the rotor d-axis
 5. Enter normal FOC operation
 
 ---
 
 ## Current Sensing
 
-2-shunt topology on the low side. Phase U (PA0, ADC1_IN0) and phase V (PC1, ADC1_IN11) are measured directly; phase W is reconstructed by KCL:
+2 shunt resistors topology on the low side. Phase U (PA0, ADC1_IN0) and phase V (PC1, ADC1_IN11) are measured directly; phase W is reconstructed by KCL:
 
 ```
 i_w = −i_u − i_v
@@ -142,7 +138,6 @@ i_w = −i_u − i_v
 
 The ADC injected group is triggered by TIM1_CH4 falling edge (CCR4 = ARR−1), which fires just before the counter peak. At that moment all high-side switches are off and both shunts carry their respective phase currents.
 
-Offset calibration runs for 100 samples at startup with all CCRs at zero (motor stationary) to remove op-amp and shunt bias.
 
 ---
 
@@ -165,9 +160,9 @@ Offset calibration runs for 100 samples at startup with all CCRs at zero (motor 
 
 | Signal | Pin  | Peripheral  | Description                |
 |-------:|------|-------------|----------------------------|
-| PWM_U  | PA8  | TIM1_CH1    | Phase U high-side PWM      |
-| PWM_V  | PA9  | TIM1_CH2    | Phase V high-side PWM      |
-| PWM_W  | PA10 | TIM1_CH3    | Phase W high-side PWM      |
+| PWM_U  | PA8  | TIM1_CH1    | Phase U high side PWM      |
+| PWM_V  | PA9  | TIM1_CH2    | Phase V high side PWM      |
+| PWM_W  | PA10 | TIM1_CH3    | Phase W high side PWM      |
 | EN_U   | PC10 | GPIO Output | Phase U gate driver enable |
 | EN_V   | PC11 | GPIO Output | Phase V gate driver enable |
 | EN_W   | PC12 | GPIO Output | Phase W gate driver enable |
@@ -178,7 +173,7 @@ Offset calibration runs for 100 samples at startup with all CCRs at zero (motor 
 |------:|-----|--------------|---------------------|
 | U     | PA0 | ADC1_IN0 / JDR1 | Phase U current  |
 | V     | PC1 | ADC1_IN11 / JDR2| Phase V current  |
-| W     | —   | —            | KCL reconstruction  |
+| W     | —   | —            | KCL calculation  |
 
 ### Encoder (AS5600, I2C1)
 
@@ -207,10 +202,10 @@ Offset calibration runs for 100 samples at startup with all CCRs at zero (motor 
 | Parameter      | Value        | Notes                                          |
 |---------------:|-------------:|------------------------------------------------|
 | Interface      | I2C1         | 100 kHz                                        |
-| I2C address    | 0x36         | 7-bit                                          |
-| Angle register | 0x0C–0x0D   | 12-bit raw angle                               |
-| Read rate      | 1 kHz        | TIM3 interrupt → non-blocking I2C read         |
-| Angle LP filter| 30 Hz        | Removes quantization jitter                    |
+| I2C address    | 0x36         | 7 bit                                          |
+| Angle register | 0x0C–0x0D   | 12 bit raw angle                               |
+| Read rate      | 1 kHz        | TIM3 interrupt starts I2C read         |
+| Angle LP filter| 30 Hz        | Filters angle                    |
 | Speed LP filter| 20 Hz        | Applied to angle delta / dt                    |
 
 ---
@@ -243,14 +238,14 @@ The full FOC math chain.
 
 ### `controller.c / controller.h`
 PI cascade and scheduling.
-- `pi_controller()` — anti-windup PI with integral back-calculation
+- `pi_controller()` — PI library
 - `controller_task()` — runs current loop every call, speed loop every 100 calls, position loop every 1000 calls
 
 ### `adc.c / adc.h`
 Current sensing and ADC ISR state machine.
 - `MX_ADC1_Init()` — injected 2-channel setup, TIM1_CH4 trigger
 - `calculate_currents()` — raw ADC → amps with offset correction
-- `HAL_ADCEx_InjectedConvCpltCallback()` — 3-state ISR: calibration → alignment → FOC
+- `HAL_ADCEx_InjectedConvCpltCallback()` — 3 state ISR: calibration → alignment → FOC
 
 ### `bldc.c / bldc.h`
 Phase enable/disable and motor alignment.
@@ -258,7 +253,7 @@ Phase enable/disable and motor alignment.
 - `bldc_enable_all() / bldc_disable_all()` — gate driver enable pins
 
 ### `pwm.c / pwm.h`
-TIM1 center-aligned PWM.
+TIM1 center aligned PWM.
 - `MX_TIM1_Init()` — configures TIM1 CH1–3 at 20 kHz, CH4 as ADC trigger
 - `tim1_pwm_set_duty_percent()` — converts duty % to CCR with upper/lower clamp
 
@@ -269,12 +264,12 @@ Encoder driver.
 - `as5600_set_reference()` — zeros encoder at current position
 
 ### `trigonometry.c / trigonometry.h`
-256-entry sine LUT with linear interpolation.
-- `compute_sin_cos()` — returns sin and cos from a single LUT lookup, cos offset by 64 indices (90°)
+sine LUT with linear interpolation.
+- `compute_sin_cos()` — returns sin and cos from a single LUT lookup
 
 ### `setpoint_generator.c / setpoint_generator.h`
 Position ramp generator.
-- `ramp_position_setpoint()` — advances setpoint toward target at a fixed rate, called at the position loop rate
+- `ramp_position_setpoint()` — generates setpoint toward target at a fixed rate, called at the position loop rate
 
 ### `timer.c / timer.h`
 TIM3 for encoder reads.
