@@ -113,7 +113,8 @@ void svpwm_update(void)
 	      t_0  = 0.0f;
 	  }
 	float t_short = t_0 / 2.0f;
-	//float t_middle = t_0 / 2.0f + t_k1;
+	// middle phase is high in only one corner. odd sectors -> 2nd corner (t_k1), even -> 1st corner (t_k).
+	// book's formula only works for odd sectors.
 	float t_middle = (sector & 1) ? (t_0/2.0f + t_k1) : (t_0/2.0f + t_k);
 	float t_long =  t_0 / 2.0f + t_k1 + t_k;
 
