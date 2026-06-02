@@ -23,8 +23,11 @@ extern FOC_t foc;
 void foc_update(void);
 
 #define SQRT_3 1.73205f
+#define SQRT_3_INV (1/SQRT_3)
 #define SQRT_3_HALF (SQRT_3/2)
 #define VBUS_NOMINAL 12.0f
+#define T_PWM 1.0f	// Normalized T pwm
+#define T_PWM_HALF (T_PWM/2)
 
 void svpwm_update(void);
 
