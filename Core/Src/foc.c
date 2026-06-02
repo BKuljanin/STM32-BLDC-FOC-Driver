@@ -18,9 +18,14 @@ void clarke_transform(void)
 void park_transform(void)
 {
 	// Compute sin and cos theta
+
 	float sin_theta = 0.0f;
 	float cos_theta = 0.0f;
+	/*	Custom lookup table for sin and cos to save time on doing trigonometry
 	compute_sin_cos(encoder.electrical_angle_rad, &sin_theta, &cos_theta);
+	*/
+	sin_theta = sinf(encoder.electrical_angle_rad);
+	cos_theta = cosf(encoder.electrical_angle_rad);
 
 	// Apply Park transform
 	foc.id = foc.i_alpha * cos_theta + foc.i_beta * sin_theta;
@@ -32,7 +37,9 @@ void inverse_park_transform(void)
 	// Compute sin and cos theta
 	float sin_theta = 0.0f;
 	float cos_theta = 0.0f;
-	compute_sin_cos(encoder.electrical_angle_rad, &sin_theta, &cos_theta);
+	// compute_sin_cos(encoder.electrical_angle_rad, &sin_theta, &cos_theta);
+	sin_theta = sinf(encoder.electrical_angle_rad);
+	cos_theta = cosf(encoder.electrical_angle_rad);
 
 	// Apply inverse Park transform
 	foc.v_alpha = foc.vd * cos_theta - foc.vq * sin_theta;
