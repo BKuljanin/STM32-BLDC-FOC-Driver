@@ -167,6 +167,21 @@ void svpwm_update(void)
 	tim1_pwm_set_duty_percent(foc.duty);
 }
 
+void spwm_update(void)
+{
+	// Sinusoidal PWM. Inverse Clarke: alpha,beta -> phase voltages, then center each at 50% duty.
+	float v_u = foc.v_alpha;
+	float v_v = -0.5f * foc.v_alpha + SQRT_3_HALF * foc.v_beta;
+	float v_w = -0.5f * foc.v_alpha - SQRT_3_HALF * foc.v_beta;
+
+	// duty = 50% (midpoint) + phase voltage as fraction of Vbus. Max |v| = Vbus/2 -> 0..100%.
+	foc.duty.u_duty = 50.0f + (v_u / VBUS_NOMINAL) * 100.0f;
+	foc.duty.v_duty = 50.0f + (v_v / VBUS_NOMINAL) * 100.0f;
+	foc.duty.w_duty = 50.0f + (v_w / VBUS_NOMINAL) * 100.0f;
+
+	tim1_pwm_set_duty_percent(foc.duty);
+}
+
 void foc_update(void)
 {
 	// Calculate i_u, i_v, i_w from raw values of i_u and i_v and calibration offsets
@@ -184,7 +199,11 @@ void foc_update(void)
 	// Inverse Park transform, v_d and v_q to alpha, beta framework
 	inverse_park_transform();
 
-	// Space vector PWM, from alpha, beta framework to duty cycles for phases U, V, W
+	// Modulation: alpha, beta -> duty cycles for phases U, V, W
+#if MODULATION_TYPE == MODULATION_SVPWM
 	svpwm_update();
+#else
+	spwm_update();
+#endif
 
 }

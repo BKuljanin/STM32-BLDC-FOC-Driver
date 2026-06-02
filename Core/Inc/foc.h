@@ -29,6 +29,12 @@ void foc_update(void);
 #define T_PWM 1.0f	// Normalized T pwm
 #define T_PWM_HALF (T_PWM/2)
 
+// Modulation method select
+#define MODULATION_SVPWM 0
+#define MODULATION_SPWM  1
+#define MODULATION_TYPE  MODULATION_SVPWM
+
 void svpwm_update(void);
+void spwm_update(void);
 
 #endif /* INC_FOC_H_ */
