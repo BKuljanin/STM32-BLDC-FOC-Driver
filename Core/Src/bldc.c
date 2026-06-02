@@ -1,6 +1,6 @@
 #include "bldc.h"
 
-BLDC_Direction_t bldc_direction = BLDC_REVERSE;
+BLDC_Direction_t bldc_direction = BLDC_FORWARD;
 
 static void phase_enable(BLDC_Phase_t phase)
 {

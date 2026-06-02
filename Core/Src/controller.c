@@ -43,6 +43,13 @@ float pi_controller(PI_Controller_t *ctrl, float setpoint, float measurement, fl
 
 void controller_task(void)
 {
+#if TORQUE_TEST_MODE
+	// Open-loop torque test: command a fixed iq, bypass speed + position loops.
+	foc.iq_ref = TORQUE_TEST_IQ_REF;
+
+	foc.vq = pi_controller(&iq_pi, foc.iq_ref, foc.iq, CURRENT_LOOP_DT);
+	foc.vd = pi_controller(&id_pi, ID_SETPOINT, foc.id, CURRENT_LOOP_DT);
+#else
 	static uint16_t speed_loop_counter;
 	static uint16_t position_loop_counter;
 	// Provides vq to follow the desired iq
@@ -68,5 +75,6 @@ void controller_task(void)
 				position_loop_counter = 0;
 			}
 	}
+#endif
 }
 

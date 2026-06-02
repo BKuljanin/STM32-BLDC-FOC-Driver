@@ -41,6 +41,14 @@ typedef struct {
 // Iq is minimized to keep stator 90 deg ahead of rotor
 #define ID_SETPOINT 0.0f
 
+/* Open-loop torque test: set to 1 to bypass the speed + position loops and
+ * command a fixed iq_ref directly (id_ref stays 0). Use to verify commutation:
+ * a positive iq_ref should rotate the rotor smoothly in the encoder's count-up
+ * direction. If it locks/buzzes instead, the angle direction or sign is wrong.
+ * Set back to 0 for normal cascaded position control. */
+#define TORQUE_TEST_MODE   1
+#define TORQUE_TEST_IQ_REF 0.4f   // [A]
+
 /* PI task frequencies
  * ADC sample happens in the middle of center aligned PWM 20 kHz frequency.
  * Speed loop is called at 200 Hz (100 current PIs are called between 2 speed loop calls)
