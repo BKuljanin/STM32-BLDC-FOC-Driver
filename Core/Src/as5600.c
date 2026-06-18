@@ -74,6 +74,8 @@ void HAL_I2C_MemRxCpltCallback(I2C_HandleTypeDef *hi2c)
 
     encoder.angle_rad = encoder.angle * PI / 180.0f;
 
+    // Encoder zero is set to the rotor d-axis by the startup alignment routine
+    // (bldc.c: Vd along phase U, then as5600_set_reference), so no extra offset needed.
     float theta_e = ref * (float)BLDC_POLE_PAIRS * (PI / 180.0f);
     theta_e -= (float)(int)(theta_e / (2.0f * PI)) * (2.0f * PI);
     if (theta_e < 0.0f) theta_e += 2.0f * PI;

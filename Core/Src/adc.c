@@ -72,8 +72,8 @@ void calculate_currents(void)
 	float v_u = ADC_RATIO * (adc_iu_raw - phase_currents_offsets.i_u_offset);
 	float v_v = ADC_RATIO * (adc_iv_raw - phase_currents_offsets.i_v_offset);
 
-	phase_currents.i_u = v_u / VOLTAGE_TO_CURRENT_RATIO;
-	phase_currents.i_v = v_v / VOLTAGE_TO_CURRENT_RATIO;
+	phase_currents.i_u = CURRENT_SENSE_SIGN * v_u / VOLTAGE_TO_CURRENT_RATIO;
+	phase_currents.i_v = CURRENT_SENSE_SIGN * v_v / VOLTAGE_TO_CURRENT_RATIO;
 	phase_currents.i_w = - phase_currents.i_u - phase_currents.i_v;
 }
 

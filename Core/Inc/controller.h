@@ -47,7 +47,7 @@ typedef struct {
  * direction. If it locks/buzzes instead, the angle direction or sign is wrong.
  * Set back to 0 for normal cascaded position control. */
 #define TORQUE_TEST_MODE   1
-#define TORQUE_TEST_IQ_REF 0.4f   // [A]
+#define TORQUE_TEST_IQ_REF 1.5f   // [A]
 
 /* PI task frequencies
  * ADC sample happens in the middle of center aligned PWM 20 kHz frequency.

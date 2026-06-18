@@ -30,4 +30,8 @@ void calculate_currents(void);
 #define ADC_RATIO (ADC_VOLTAGE_LEVEL/ADC_RESOLUTION)
 #define VOLTAGE_TO_CURRENT_RATIO (SHUNT_RESISTOR_VALUE * AMPLIFICATION_VALUE)
 
+// Low-side shunt senses phase RETURN current -> measured sign is inverted vs motor
+// phase current. Set to -1.0f to correct. Revert to +1.0f if vq turns out sane.
+#define CURRENT_SENSE_SIGN (-1.0f)
+
 #endif /* INC_ADC_H_ */

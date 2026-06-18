@@ -1,6 +1,6 @@
 #include "bldc.h"
 
-BLDC_Direction_t bldc_direction = BLDC_FORWARD;
+BLDC_Direction_t bldc_direction = BLDC_REVERSE;	// encoder counts opposite to field rotation; reverse its electrical sense to match phase order
 
 static void phase_enable(BLDC_Phase_t phase)
 {

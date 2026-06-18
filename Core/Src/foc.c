@@ -3,6 +3,14 @@
 
 FOC_t foc;
 
+// --- Debug plotting (decimated) ---
+// Trace/live-watch can't follow 20kHz. Update plot copies every 4th cycle -> 5kHz.
+volatile float plot_id;
+volatile float plot_iq;
+volatile float plot_vq;
+volatile float plot_theta;   // electrical angle used by park (rad) — is it advancing?
+volatile float plot_mech;    // mechanical angle (rad)
+
 void clarke_transform(void)
 {
 	// Projecting U,V,W to alpha,beta, applying Clarke transform
@@ -184,6 +192,33 @@ void spwm_update(void)
 
 void foc_update(void)
 {
+#if OPEN_LOOP_VF_TEST
+	// --- Open-loop V/f calibration: no encoder, no current loop ---
+	// Free-running electrical angle, fixed-magnitude rotating voltage vector.
+	static float ol_theta = 0.0f;
+	ol_theta += 2.0f * PI * OL_VF_FREQ_HZ * CURRENT_LOOP_DT;
+	if (ol_theta >= 2.0f * PI) ol_theta -= 2.0f * PI;
+
+	foc.v_alpha = OL_VF_VOLTAGE * cosf(ol_theta);
+	foc.v_beta  = OL_VF_VOLTAGE * sinf(ol_theta);
+
+#if MODULATION_TYPE == MODULATION_SVPWM
+	svpwm_update();
+#else
+	spwm_update();
+#endif
+
+	// Log commanded vs measured electrical angle (decimated) to read off offset/direction
+	static uint8_t ol_decim = 0;
+	if (++ol_decim >= 4) {
+		ol_decim = 0;
+		plot_vq    = ol_theta;                      // COMMANDED electrical angle [rad]
+		plot_theta = encoder.electrical_angle_rad;  // MEASURED  electrical angle [rad]
+		plot_mech  = encoder.angle_rad;             // mechanical angle [rad]
+	}
+	return;
+#endif
+
 	// Calculate i_u, i_v, i_w from raw values of i_u and i_v and calibration offsets
 	calculate_currents();
 
@@ -195,6 +230,17 @@ void foc_update(void)
 
 	// Call position PI, speed PI, current PI (iq and id)
 	controller_task();
+
+	// Debug: snapshot id/iq/vq every 4th cycle for plotting (decimated 20kHz -> 5kHz)
+	static uint8_t plot_decim = 0;
+	if (++plot_decim >= 4) {
+		plot_decim = 0;
+		plot_id = foc.id;
+		plot_iq = foc.iq;
+		plot_vq = foc.vq;
+		plot_theta = encoder.electrical_angle_rad;
+		plot_mech = encoder.angle_rad;
+	}
 
 	// Inverse Park transform, v_d and v_q to alpha, beta framework
 	inverse_park_transform();

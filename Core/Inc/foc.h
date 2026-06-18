@@ -20,6 +20,13 @@ typedef struct {
 
 extern FOC_t foc;
 
+// Debug plotting copies, updated every 4th FOC cycle (5kHz)
+extern volatile float plot_id;
+extern volatile float plot_iq;
+extern volatile float plot_vq;
+extern volatile float plot_theta;   // electrical angle [rad]
+extern volatile float plot_mech;    // mechanical angle [rad]
+
 void foc_update(void);
 
 #define SQRT_3 1.73205f
@@ -33,6 +40,14 @@ void foc_update(void);
 #define MODULATION_SVPWM 0
 #define MODULATION_SPWM  1
 #define MODULATION_TYPE  MODULATION_SVPWM
+
+// Open loop V/f calibration test: bypass encoder + current loop and spin a
+// fixed magnitude voltage vector at fixed electrical frequency
+
+// Set to 0 for normal closed-loop FOC
+#define OPEN_LOOP_VF_TEST 1
+#define OL_VF_VOLTAGE     2.0f    // [V] stator vector magnitude (keep small)
+#define OL_VF_FREQ_HZ     2.0f    // [Hz] electrical frequency (slow)
 
 void svpwm_update(void);
 void spwm_update(void);
