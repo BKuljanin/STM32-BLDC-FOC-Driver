@@ -44,8 +44,8 @@ void foc_update(void);
 // Open loop V/f calibration test: bypass encoder + current loop and spin a
 // fixed magnitude voltage vector at fixed electrical frequency
 
-// Set to 0 for normal closed-loop FOC
-#define OPEN_LOOP_VF_TEST 1
+// Set to 0 for normal closed loop FOC
+#define OPEN_LOOP_VF_TEST 0
 #define OL_VF_VOLTAGE     2.0f    // [V] stator vector magnitude (keep small)
 #define OL_VF_FREQ_HZ     2.0f    // [Hz] electrical frequency (slow)
 
